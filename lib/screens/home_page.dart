@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:travel_route_planner/screens/screens.dart';
 import 'package:travel_route_planner/widgets/widgets.dart';
 
 class HomePage extends StatefulWidget {
@@ -30,9 +31,11 @@ class _HomePageState extends State<HomePage> {
           });
           break;
         case 2:
-          setState(() {
-            launchGoogleMapsSearch();
-          });
+          // 검색 페이지로 이동
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const SearchPage()),
+          );
           break;
         case 3:
           setState(() {
@@ -50,38 +53,38 @@ class _HomePageState extends State<HomePage> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.white,
-        leading: const Padding(
-          padding: EdgeInsets.all(12.0),
-          child: Row(
-            mainAxisSize: MainAxisSize.min, // 최소 공간만 차지
-            children: [
-              CircleAvatar(
-                radius: 30,
-                backgroundImage: AssetImage('assets/images/profile.png'),
-              ),
-              SizedBox(width: 8.0),
-              Text(
-                'Chu Kyeongmin',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 14.0,
-                  fontWeight: FontWeight.w400,
-                  letterSpacing: 0.3,
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications, color: Colors.black),
-            onPressed: () {},
-          ),
-        ],
-      ),
+      // appBar: AppBar(
+      //   elevation: 0,
+      //   backgroundColor: Colors.white,
+      //   leading: const Padding(
+      //     padding: EdgeInsets.all(12.0),
+      //     child: Row(
+      //       mainAxisSize: MainAxisSize.min, // 최소 공간만 차지
+      //       children: [
+      //         CircleAvatar(
+      //           radius: 30,
+      //           backgroundImage: AssetImage('assets/images/profile.png'),
+      //         ),
+      //         SizedBox(width: 8.0),
+      //         Text(
+      //           'Chu Kyeongmin',
+      //           style: TextStyle(
+      //             color: Colors.black,
+      //             fontSize: 14.0,
+      //             fontWeight: FontWeight.w400,
+      //             letterSpacing: 0.3,
+      //           ),
+      //         ),
+      //       ],
+      //     ),
+      //   ),
+      //   actions: [
+      //     IconButton(
+      //       icon: const Icon(Icons.notifications, color: Colors.black),
+      //       onPressed: () {},
+      //     ),
+      //   ],
+      // ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
