@@ -14,9 +14,9 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     var selectedIndex = 0;
 
-    void launchGoogleMapsSearch() {
-      print('구글 api 호출');
-    }
+    // void launchGoogleMapsSearch() {
+    //   print('구글 api 호출');
+    // }
 
     void onItemTapped(int index) {
       switch (index) {
