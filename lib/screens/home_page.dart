@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:travel_route_planner/screens/screens.dart';
 import 'package:travel_route_planner/widgets/widgets.dart';
+import 'package:travel_route_planner/screens/search_page.dart'; // 추가
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -13,10 +13,6 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     var selectedIndex = 0;
-
-    // void launchGoogleMapsSearch() {
-    //   print('구글 api 호출');
-    // }
 
     void onItemTapped(int index) {
       switch (index) {
