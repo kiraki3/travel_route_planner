@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:travel_route_planner/models/models.dart';
 import 'package:travel_route_planner/screens/screens.dart';
 import 'package:travel_route_planner/services/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -18,7 +20,8 @@ class _SearchPageState extends State<SearchPage> {
   @override
   void initState() {
     super.initState();
-    placeService = PlaceService(''); // API 키 전달
+    String apiKey = dotenv.env['GOOGLE_PLACES_API_KEY'] ?? '';
+    placeService = PlaceService(apiKey); // API 키 전달
   }
 
   Future<void> searchPlaces(String input) async {
@@ -100,11 +103,18 @@ class _SearchPageState extends State<SearchPage> {
                         return ListTile(
                           title: Text(place['description']), // 자동완성 결과 표시
                           onTap: () {
+                            // PlaceDetails.fromJson으로 변환
+                            PlaceDetails placeDetails =
+                                PlaceDetails.fromJson(place);
+
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>
-                                    PlaceDetailPage(place: place),
+                                builder: (context) => PlaceDetailPage(
+                                  place: place,
+                                  placeDetails:
+                                      placeDetails, // 변환된 placeDetails 전달
+                                ),
                               ),
                             );
                           },
