@@ -20,6 +20,48 @@ class PlaceDetailPage extends StatefulWidget {
 class _PlaceDetailPageState extends State<PlaceDetailPage> {
   bool isLiked = false; // 좋아요 상태 관리
   late PlaceDetailService placeDetailService;
+  String memo = ''; // 메모 저장할 변수
+
+  // 메모 입력 다이얼로그
+  void _showMemoDialog() {
+    final TextEditingController memoController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Memo'),
+          content: TextField(
+            controller: memoController,
+            maxLines: 5,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              hintText: 'Write your memo here...',
+              hintStyle: TextStyle(
+                color: Colors.grey,
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('cancle'),
+            ),
+            TextButton(
+                onPressed: () {
+                  setState(() {
+                    memo = memoController.text;
+                  });
+                  Navigator.of(context).pop();
+                },
+                child: const Text('save'))
+          ],
+        );
+      },
+    );
+  }
 
   @override
   void initState() {
@@ -61,6 +103,11 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
             onPressed: () {
               setState(() {
                 isLiked = !isLiked; // 클릭 시 상태 반전
+                if (isLiked) {
+                  _showMemoDialog();
+                } else {
+                  memo = '';
+                }
               });
             },
           ),
@@ -142,6 +189,27 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                               },
                             ),
                           ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        if (memo.isNotEmpty) ...[
+                          const SizedBox(height: 10), // 여백 추가
+                          const Text(
+                            'Memo:',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          Container(
+                            width: 300,
+                            height: 100,
+                            padding: const EdgeInsets.all(8.0), // 패딩 추가
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey), // 테두리 색상
+                              borderRadius: BorderRadius.circular(5), // 모서리 둥글게
+                            ),
+                            child: Text(memo), // 저장된 메모 표시
+                          ), // 저장된 메모 표시
+                        ],
                       ],
                     ),
                   );
