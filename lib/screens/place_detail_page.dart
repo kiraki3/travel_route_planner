@@ -1,9 +1,44 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:travel_route_planner/models/models.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:travel_route_planner/services/services.dart';
+import 'package:riverpod/riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-class PlaceDetailPage extends StatefulWidget {
+// 개별 장소에 대한 상태를 저장할 수 있도록 Provider를 설정
+final likeProvider =
+    StateNotifierProvider.family<LikeNotifier, bool, String>((ref, placeId) {
+  return LikeNotifier();
+});
+
+final memoProvider =
+    StateNotifierProvider.family<MemoNotifier, String, String>((ref, placeId) {
+  return MemoNotifier();
+});
+
+class LikeNotifier extends StateNotifier<bool> {
+  LikeNotifier() : super(false);
+
+  void toggleLike() {
+    state = !state;
+  }
+}
+
+class MemoNotifier extends StateNotifier<String> {
+  MemoNotifier() : super('');
+
+  void updateMemo(String newMemo) {
+    state = newMemo;
+  }
+
+  void clearMemo() {
+    state = '';
+  }
+}
+
+class PlaceDetailPage extends ConsumerStatefulWidget {
+  // ConsumerStatefulWidget으로 변경
   final Map<String, dynamic> place;
   final PlaceDetails placeDetails;
 
@@ -14,13 +49,12 @@ class PlaceDetailPage extends StatefulWidget {
   });
 
   @override
-  State<PlaceDetailPage> createState() => _PlaceDetailPageState();
+  _PlaceDetailPageState createState() => _PlaceDetailPageState();
 }
 
-class _PlaceDetailPageState extends State<PlaceDetailPage> {
-  bool isLiked = false; // 좋아요 상태 관리
+class _PlaceDetailPageState extends ConsumerState<PlaceDetailPage> {
+  // ConsumerState로 변경
   late PlaceDetailService placeDetailService;
-  String memo = ''; // 메모 저장할 변수
 
   // 메모 입력 다이얼로그
   void _showMemoDialog() {
@@ -52,7 +86,9 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
             TextButton(
                 onPressed: () {
                   setState(() {
-                    memo = memoController.text;
+                    ref
+                        .read(memoProvider(widget.place['place_id']).notifier)
+                        .updateMemo(memoController.text); // 메모 저장
                   });
                   Navigator.of(context).pop();
                 },
@@ -74,9 +110,25 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
     return await placeDetailService.getPlaceDetails(widget.place['place_id']);
   }
 
+  // Google Maps 열기 함수
+  void _openGoogleMaps(String formattedAddress) async {
+    final Uri url = Uri.parse(
+        'https://www.google.com/maps/search/?api=1&query=$formattedAddress');
+    if (await canLaunchUrl(url)) {
+      // canLaunchUrl로 변경
+      await launchUrl(url); // launchUrl로 변경
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final String placeName = widget.place['description'] ?? 'Unknown Place';
+    final bool isLiked =
+        ref.watch(likeProvider(widget.place['place_id'])); // 좋아요 상태 읽기
+    final String memo =
+        ref.watch(memoProvider(widget.place['place_id'])); // 메모 상태 읽기
 
     return Scaffold(
       appBar: AppBar(
@@ -101,14 +153,17 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
               color: isLiked ? Colors.red : Colors.grey,
             ),
             onPressed: () {
-              setState(() {
-                isLiked = !isLiked; // 클릭 시 상태 반전
-                if (isLiked) {
-                  _showMemoDialog();
-                } else {
-                  memo = '';
-                }
-              });
+              ref
+                  .read(likeProvider(widget.place['place_id']).notifier)
+                  .toggleLike(); // 좋아요 상태 업데이트
+              if (isLiked) {
+                // 좋아요 해제 시 메모도 초기화
+                ref
+                    .read(memoProvider(widget.place['place_id']).notifier)
+                    .clearMemo();
+              } else {
+                _showMemoDialog(); // 좋아요 누르면 메모 입력 다이얼로그 띄우기
+              }
             },
           ),
         ],
@@ -163,8 +218,19 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                       children: [
                         Text('Address: ${placeDetails.formattedAddress}'),
                         Text(
-                            'location: ${placeDetails.latitude}, ${placeDetails.longitude}'),
+                            'Location: ${placeDetails.latitude}, ${placeDetails.longitude}'),
                         Text('Rating: ${placeDetails.rating}'),
+                        // Google Maps 열기 버튼 추가
+                        TextButton(
+                          onPressed: () {
+                            _openGoogleMaps(placeDetails.formattedAddress);
+                          },
+                          style: TextButton.styleFrom(
+                              textStyle: const TextStyle(
+                            color: Colors.blue,
+                          )),
+                          child: const Text('Open in Google Maps'),
+                        ),
                         const SizedBox(height: 10),
                         // 사진 표시 (if available)
                         if (placeDetails.photos.isNotEmpty)

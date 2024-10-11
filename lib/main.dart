@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:travel_route_planner/screens/screens.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -12,7 +13,9 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   // 앱 초기화 후 실행
   initializeApp().then((_) {
-    runApp(const TravelApp());
+    runApp(
+      const ProviderScope(child: TravelApp()), // ProviderScope로 감싸서 전역 상태 관리
+    );
   });
 }
 
