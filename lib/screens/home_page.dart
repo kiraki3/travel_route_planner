@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:travel_route_planner/screens/screens.dart';
 import 'package:travel_route_planner/widgets/widgets.dart';
 import 'package:travel_route_planner/screens/search_page.dart'; // 추가
 
@@ -22,23 +23,21 @@ class _HomePageState extends State<HomePage> {
           });
           break;
         case 1:
-          setState(() {
-            selectedIndex = index;
-          });
-          break;
-        case 2:
           // 검색 페이지로 이동
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const SearchPage()),
           );
           break;
-        case 3:
-          setState(() {
-            selectedIndex = index;
-          });
+        case 2:
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const CalendarPage(),
+            ),
+          );
           break;
-        case 4:
+        case 3:
           setState(() {
             selectedIndex = index;
           });
@@ -158,8 +157,7 @@ class _HomePageState extends State<HomePage> {
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
             BottomNavigationBarItem(
-                icon: Icon(Icons.calendar_today), label: 'Calendar'),
-            BottomNavigationBarItem(
+              label: 'Search',
               icon: Align(
                 alignment: Alignment.center,
                 child: Icon(
@@ -167,10 +165,9 @@ class _HomePageState extends State<HomePage> {
                   size: 30,
                 ),
               ),
-              label: '',
             ),
             BottomNavigationBarItem(
-                icon: Icon(Icons.message), label: 'Messages'),
+                icon: Icon(Icons.calendar_today), label: 'Calendar'),
             BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
           ]),
     );

@@ -6,34 +6,96 @@ import 'package:travel_route_planner/services/services.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+// 좋아요한 장소 리스트를 관리하는 Provider
+final likedPlacesProvider =
+    StateNotifierProvider<LikedPlacesNotifier, List<String>>((ref) {
+  return LikedPlacesNotifier();
+});
+
 // 개별 장소에 대한 상태를 저장할 수 있도록 Provider를 설정
 final likeProvider =
     StateNotifierProvider.family<LikeNotifier, bool, String>((ref, placeId) {
-  return LikeNotifier();
+  return LikeNotifier(ref, placeId);
 });
 
+// 좋아요 장소 리스트를 관리하는 Provider
+final likePlaceListProvider =
+    StateNotifierProvider<LikePlaceListNotifier, List<String>>((ref) {
+  return LikePlaceListNotifier();
+});
+
+// memoProvider 정의 수정
 final memoProvider =
-    StateNotifierProvider.family<MemoNotifier, String, String>((ref, placeId) {
-  return MemoNotifier();
+    StateNotifierProvider.family<MemoNotifier, List<Memo>, String>(
+        (ref, placeId) {
+  return MemoNotifier(placeId); // placeId를 전달
 });
 
+// 좋아요 상태 관리 Notifier
 class LikeNotifier extends StateNotifier<bool> {
-  LikeNotifier() : super(false);
+  final Ref ref;
+  final String placeId;
+
+  LikeNotifier(this.ref, this.placeId) : super(false);
 
   void toggleLike() {
     state = !state;
+    // 좋아요 상태가 변경될 때 좋아요 리스트도 업데이트
+    ref.read(likePlaceListProvider.notifier).togglePlace(placeId, state);
   }
 }
 
-class MemoNotifier extends StateNotifier<String> {
-  MemoNotifier() : super('');
+// 좋아요 장소 리스트를 관리하는 Notifier
+class LikePlaceListNotifier extends StateNotifier<List<String>> {
+  LikePlaceListNotifier() : super([]);
 
-  void updateMemo(String newMemo) {
-    state = newMemo;
+  void togglePlace(String placeId, bool isLiked) {
+    if (isLiked) {
+      state = [...state, placeId]; // 장소 추가
+    } else {
+      state = state.where((id) => id != placeId).toList(); // 장소 제거
+    }
+  }
+}
+
+// 메모 모델 클래스
+class Memo {
+  final String text;
+  final String category;
+
+  Memo({required this.text, required this.category});
+}
+
+// 메모 상태 관리 Notifier
+class MemoNotifier extends StateNotifier<List<Memo>> {
+  final String placeId; // placeId를 저장할 변수
+
+  MemoNotifier(this.placeId) : super([]); // 생성자에서 placeId를 초기화
+
+  // 메모 업데이트
+  void updateMemoWithCategory(String newMemo, String selectedCategory) {
+    if (newMemo.isNotEmpty) {
+      final memo = Memo(text: newMemo, category: selectedCategory);
+      state = [...state, memo]; // 기존 메모와 함께 새로운 메모 추가
+    }
   }
 
+  // 메모 초기화 (필요에 따라)
   void clearMemo() {
-    state = '';
+    state = [];
+  }
+}
+
+// 좋아요된 장소 리스트를 관리하는 Notifier
+class LikedPlacesNotifier extends StateNotifier<List<String>> {
+  LikedPlacesNotifier() : super([]);
+
+  void togglePlace(String placeId, bool isLiked) {
+    if (isLiked) {
+      state = [...state, placeId]; // 장소 추가
+    } else {
+      state = state.where((id) => id != placeId).toList(); // 장소 제거
+    }
   }
 }
 
@@ -55,26 +117,57 @@ class PlaceDetailPage extends ConsumerStatefulWidget {
 class _PlaceDetailPageState extends ConsumerState<PlaceDetailPage> {
   // ConsumerState로 변경
   late PlaceDetailService placeDetailService;
+  String? selectedCategory; // 선택된 카테고리 변수 추가
 
   // 메모 입력 다이얼로그
   void _showMemoDialog() {
     final TextEditingController memoController = TextEditingController();
 
+    // 저장된 장소 리스트를 가져오기
+    final List<String> likedPlaces = ref.watch(likedPlacesProvider);
+
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Memo'),
-          content: TextField(
-            controller: memoController,
-            maxLines: 5,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: 'Write your memo here...',
-              hintStyle: TextStyle(
-                color: Colors.grey,
-              ),
+          title: const Text(
+            '목록에 저장',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
             ),
+          ),
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildPlaceCategories((category) {
+                selectedCategory = category; // 선택된 카테고리 업데이트
+              }),
+              const SizedBox(
+                height: 10,
+              ),
+              const Text(
+                'Memo',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              TextField(
+                controller: memoController,
+                maxLines: 5,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: 'Write your memo here...',
+                  hintStyle: TextStyle(
+                    color: Colors.grey,
+                  ),
+                ),
+              ),
+            ],
           ),
           actions: [
             TextButton(
@@ -85,17 +178,54 @@ class _PlaceDetailPageState extends ConsumerState<PlaceDetailPage> {
             ),
             TextButton(
                 onPressed: () {
-                  setState(() {
-                    ref
-                        .read(memoProvider(widget.place['place_id']).notifier)
-                        .updateMemo(memoController.text); // 메모 저장
-                  });
+                  ref
+                      .read(memoProvider(widget.place['place_id']).notifier)
+                      .updateMemoWithCategory(
+                          memoController.text, selectedCategory ?? ''); // 메모 저장
                   Navigator.of(context).pop();
                 },
                 child: const Text('save'))
           ],
         );
       },
+    );
+  }
+
+  Widget _buildPlaceCategories(ValueChanged<String> onCategorySelected) {
+    final List<String> categories = [
+      '즐겨찾기',
+      '가고 싶은 장소',
+      '여행 계획',
+      '새 목록',
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Category',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(
+          height: 10,
+        ),
+        Wrap(
+          spacing: 8.0,
+          children: categories.map((category) {
+            return ChoiceChip(
+              label: Text(category),
+              selected: selectedCategory == category,
+              selectedColor: Colors.blue,
+              onSelected: (selected) {
+                setState(() {
+                  selectedCategory =
+                      selected ? category : null; // 선택된 카테고리 업데이트
+                });
+                onCategorySelected(category); // 콜백 호출
+              },
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 
@@ -127,7 +257,7 @@ class _PlaceDetailPageState extends ConsumerState<PlaceDetailPage> {
     final String placeName = widget.place['description'] ?? 'Unknown Place';
     final bool isLiked =
         ref.watch(likeProvider(widget.place['place_id'])); // 좋아요 상태 읽기
-    final String memo =
+    final List<Memo> memo =
         ref.watch(memoProvider(widget.place['place_id'])); // 메모 상태 읽기
 
     return Scaffold(
@@ -273,7 +403,13 @@ class _PlaceDetailPageState extends ConsumerState<PlaceDetailPage> {
                               border: Border.all(color: Colors.grey), // 테두리 색상
                               borderRadius: BorderRadius.circular(5), // 모서리 둥글게
                             ),
-                            child: Text(memo), // 저장된 메모 표시
+                            child: ListView.builder(
+                              itemCount: memo.length, // 메모의 개수에 따라 동적으로 표시
+                              itemBuilder: (context, index) {
+                                return Text(memo[index]
+                                    .text); // Memo 객체의 text 속성을 사용하여 표시
+                              },
+                            ), // 저장된 메모 표시
                           ), // 저장된 메모 표시
                         ],
                       ],
