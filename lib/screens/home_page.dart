@@ -81,72 +81,73 @@ class _HomePageState extends State<HomePage> {
       //   ],
       // ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 16),
-            RichText(
-              text: const TextSpan(
-                children: [
-                  TextSpan(
-                    text: 'Explore the \n',
-                    style: TextStyle(
-                      fontSize: 40,
-                      color: Colors.black,
+        padding: const EdgeInsets.all(8.0),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 16),
+              RichText(
+                text: const TextSpan(
+                  children: [
+                    TextSpan(
+                      text: 'Explore the \n',
+                      style: TextStyle(
+                        fontSize: 40,
+                        color: Colors.black,
+                      ),
                     ),
-                  ),
-                  TextSpan(
-                    text: 'Beautiful ',
-                    style: TextStyle(
-                      fontSize: 40,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                    TextSpan(
+                      text: 'Beautiful ',
+                      style: TextStyle(
+                        fontSize: 40,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
                     ),
-                  ),
-                  TextSpan(
-                    text: 'world!',
-                    style: TextStyle(
-                      fontSize: 40,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.orange,
+                    TextSpan(
+                      text: 'world!',
+                      style: TextStyle(
+                        fontSize: 40,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.orange,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(
-              height: 24,
-            ),
-            const Text(
-              'Best Destination',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
+              const SizedBox(
+                height: 24,
               ),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              height: 400,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: const [
-                  DestinationCard(
-                    imagePath: 'assets/images/destination1.png', // 목적지 이미지 경로
-                    title: 'Niladri Reservoir',
-                    location: 'Tekergat, Sunamgnj',
-                    rating: 4.7,
-                  ),
-                  DestinationCard(
-                    imagePath: 'assets/images/destination1.png',
-                    title: 'Darma Valley',
-                    location: 'Darma, India',
-                    rating: 4.8,
-                  ),
-                ],
+              const Text(
+                'Best Destination',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 400,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: const [
+                    // DestinationCard가 StatefulWidget임을 반영하여 올바르게 사용됨
+                    DestinationCard(
+                      imagePath: 'assets/images/destination1.png',
+                      title: 'Niladri Reservoir',
+                      location: 'Tekergat, Sunamgnj',
+                    ),
+                    DestinationCard(
+                      imagePath: 'assets/images/destination1.png',
+                      title: 'Darma Valley',
+                      location: 'Darma, India',
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(

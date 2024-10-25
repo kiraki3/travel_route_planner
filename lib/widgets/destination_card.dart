@@ -1,19 +1,23 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
 
-class DestinationCard extends StatelessWidget {
+class DestinationCard extends StatefulWidget {
   final String imagePath;
   final String title;
   final String location;
-  final double rating;
 
   const DestinationCard({
     super.key,
     required this.imagePath,
     required this.title,
     required this.location,
-    required this.rating,
   });
+
+  @override
+  _DestinationCardState createState() => _DestinationCardState();
+}
+
+class _DestinationCardState extends State<DestinationCard> {
+  bool isLiked = false; // 좋아요 상태 관리
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +46,7 @@ class DestinationCard extends StatelessWidget {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(16),
                   child: Image.asset(
-                    imagePath,
+                    widget.imagePath,
                     height: 280, // 이미지 크기 조정
                     width: double.infinity,
                     fit: BoxFit.cover,
@@ -52,10 +56,14 @@ class DestinationCard extends StatelessWidget {
                   top: 5,
                   right: 5,
                   child: IconButton(
-                    icon: const Icon(Icons.bookmark_border,
-                        size: 30, color: Colors.white),
+                    icon: Icon(
+                      isLiked ? Icons.favorite : Icons.favorite_border,
+                      color: isLiked ? Colors.red : Colors.grey,
+                    ),
                     onPressed: () {
-                      // 책갈피 기능 추가
+                      setState(() {
+                        isLiked = !isLiked; // 좋아요 상태 토글
+                      });
                     },
                   ),
                 ),
@@ -67,7 +75,7 @@ class DestinationCard extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
-            title,
+            widget.title,
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -83,20 +91,9 @@ class DestinationCard extends StatelessWidget {
                   color: Colors.grey, size: 20),
               const SizedBox(width: 4),
               Text(
-                location,
+                widget.location,
                 style: const TextStyle(color: Colors.grey),
               ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 4),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Row(
-            children: [
-              const Icon(Icons.star, color: Colors.yellow, size: 20),
-              const SizedBox(width: 4),
-              Text(rating.toString()),
             ],
           ),
         ),

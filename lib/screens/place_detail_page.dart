@@ -119,7 +119,6 @@ class _PlaceDetailPageState extends ConsumerState<PlaceDetailPage> {
   late PlaceDetailService placeDetailService;
   String? selectedCategory; // 선택된 카테고리 변수 추가
 
-  // 메모 입력 다이얼로그
   void _showMemoDialog() {
     final TextEditingController memoController = TextEditingController();
 
@@ -129,63 +128,74 @@ class _PlaceDetailPageState extends ConsumerState<PlaceDetailPage> {
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text(
-            '목록에 저장',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-            ),
-          ),
-          content: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildPlaceCategories((category) {
-                selectedCategory = category; // 선택된 카테고리 업데이트
-              }),
-              const SizedBox(
-                height: 10,
-              ),
-              const Text(
-                'Memo',
+        return StatefulBuilder(
+          // StatefulBuilder로 다이얼로그 상태 관리
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text(
+                '목록에 저장',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 15,
+                  fontSize: 18,
                 ),
               ),
-              const SizedBox(
-                height: 10,
-              ),
-              TextField(
-                controller: memoController,
-                maxLines: 5,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: 'Write your memo here...',
-                  hintStyle: TextStyle(
-                    color: Colors.grey,
-                  ),
+              content: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildPlaceCategories((category) {
+                      setState(() {
+                        // 선택된 카테고리 업데이트 시 다이얼로그 상태 갱신
+                        selectedCategory = category;
+                      });
+                    }),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    const Text(
+                      'Memo',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    TextField(
+                      controller: memoController,
+                      maxLines: 5,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        hintText: 'Write your memo here...',
+                        hintStyle: TextStyle(
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('cancle'),
-            ),
-            TextButton(
-                onPressed: () {
-                  ref
-                      .read(memoProvider(widget.place['place_id']).notifier)
-                      .updateMemoWithCategory(
-                          memoController.text, selectedCategory ?? ''); // 메모 저장
-                  Navigator.of(context).pop();
-                },
-                child: const Text('save'))
-          ],
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    ref
+                        .read(memoProvider(widget.place['place_id']).notifier)
+                        .updateMemoWithCategory(memoController.text,
+                            selectedCategory ?? ''); // 메모 저장
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -198,6 +208,7 @@ class _PlaceDetailPageState extends ConsumerState<PlaceDetailPage> {
       '여행 계획',
       '새 목록',
     ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -209,18 +220,14 @@ class _PlaceDetailPageState extends ConsumerState<PlaceDetailPage> {
           height: 10,
         ),
         Wrap(
-          spacing: 8.0,
+          spacing: 6.0,
           children: categories.map((category) {
             return ChoiceChip(
               label: Text(category),
               selected: selectedCategory == category,
               selectedColor: Colors.blue,
               onSelected: (selected) {
-                setState(() {
-                  selectedCategory =
-                      selected ? category : null; // 선택된 카테고리 업데이트
-                });
-                onCategorySelected(category); // 콜백 호출
+                onCategorySelected(category); // 콜백 호출하여 카테고리 업데이트
               },
             );
           }).toList(),
@@ -349,7 +356,6 @@ class _PlaceDetailPageState extends ConsumerState<PlaceDetailPage> {
                         Text('Address: ${placeDetails.formattedAddress}'),
                         Text(
                             'Location: ${placeDetails.latitude}, ${placeDetails.longitude}'),
-                        Text('Rating: ${placeDetails.rating}'),
                         // Google Maps 열기 버튼 추가
                         TextButton(
                           onPressed: () {

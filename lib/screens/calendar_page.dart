@@ -9,29 +9,31 @@ class CalendarPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // 좋아요 장소 목록 불러오기
     final likedPlaces = ref.watch(likedPlacesProvider);
+    // 디버깅을 위한 출력
+    print('Liked Places: $likedPlaces');
+
     return Scaffold(
-        appBar: AppBar(
-          centerTitle: true,
-          title: const Text(
-            'Calendar',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
+      appBar: AppBar(
+        centerTitle: true,
+        title: const Text(
+          'Calendar',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
           ),
         ),
-        body: likedPlaces.isEmpty
-            ? const Center(
-                child: Text('No liked Place yet.'),
-              )
-            : ListView.builder(
-                itemCount: likedPlaces.length,
-                itemBuilder: (context, index) {
-                  final placeId = likedPlaces[index];
-                  return ListTile(
-                    title: Text('Liked Place: $placeId'),
-                    // 실제 장소 정보를 가져오려면 장소 정보를 불러와서 표시하는 로직 필요
-                  );
-                }));
+      ),
+      body: likedPlaces.isEmpty
+          ? const Center(child: Text('No liked places yet!'))
+          : ListView.builder(
+              itemCount: likedPlaces.length,
+              itemBuilder: (context, index) {
+                return const ListTile(
+                    // title: Text(likedPlaces[index]['long_name'] ??
+                    //     'Unknown Place'), // 장소 이름을 표시합니다.
+                    );
+              },
+            ),
+    );
   }
 }
